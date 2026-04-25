@@ -1,0 +1,88 @@
+import type { Project } from "../types";
+
+export const PROJECTS: Project[] = [
+  {
+    id: 1, client: "Nexus Labs", industry: "Fintech",
+    logo: "NX", color: "#00FF94",
+    project: "Brand Identity & Web Platform",
+    year: "2024", status: "completed",
+    tags: ["Branding", "Web Dev", "UX"],
+    desc: "Full rebrand and platform overhaul for a Series-B fintech startup, resulting in a 340% increase in user onboarding.",
+    budget: "$128,000", duration: "6 months",
+    tasks: [
+      { id: 1, name: "Brand Strategy", status: "done", priority: "high", due: "Jan 15", assignee: "A.Reed" },
+      { id: 2, name: "Logo System", status: "done", priority: "high", due: "Jan 28", assignee: "M.Chen" },
+      { id: 3, name: "UI Component Library", status: "done", priority: "med", due: "Feb 20", assignee: "D.Park" },
+      { id: 4, name: "Web Development", status: "done", priority: "high", due: "Mar 10", assignee: "T.Wong" },
+      { id: 5, name: "QA & Launch", status: "done", priority: "high", due: "Mar 18", assignee: "A.Reed" },
+    ],
+  },
+  {
+    id: 2, client: "Vanta Motion", industry: "Entertainment",
+    logo: "VM", color: "#FF6B35",
+    project: "Campaign Activation",
+    year: "2024", status: "completed",
+    tags: ["Campaign", "Motion", "Social"],
+    desc: "Multi-channel activation campaign for streaming platform launch across 12 markets.",
+    budget: "$92,000", duration: "4 months",
+    tasks: [
+      { id: 1, name: "Creative Brief", status: "done", priority: "high", due: "Apr 5", assignee: "S.Kim" },
+      { id: 2, name: "Motion Concepts", status: "done", priority: "high", due: "Apr 20", assignee: "M.Chen" },
+      { id: 3, name: "Social Assets", status: "done", priority: "med", due: "May 3", assignee: "L.Torres" },
+      { id: 4, name: "Campaign Reporting", status: "done", priority: "low", due: "Jun 1", assignee: "S.Kim" },
+    ],
+  },
+  {
+    id: 3, client: "Axiom Health", industry: "Healthcare",
+    logo: "AH", color: "#A78BFA",
+    project: "Patient Portal Redesign",
+    year: "2025", status: "completed",
+    tags: ["UX Research", "Product Design", "Dev"],
+    desc: "Complete UX overhaul of a patient-facing portal serving 2M+ users, reducing task completion time by 60%.",
+    budget: "$214,000", duration: "9 months",
+    tasks: [
+      { id: 1, name: "User Research", status: "done", priority: "high", due: "Jul 10", assignee: "A.Reed" },
+      { id: 2, name: "Information Architecture", status: "done", priority: "high", due: "Aug 5", assignee: "D.Park" },
+      { id: 3, name: "Prototype & Testing", status: "done", priority: "high", due: "Sep 15", assignee: "A.Reed" },
+      { id: 4, name: "Frontend Development", status: "done", priority: "high", due: "Nov 1", assignee: "T.Wong" },
+      { id: 5, name: "Accessibility Audit", status: "done", priority: "med", due: "Nov 20", assignee: "D.Park" },
+      { id: 6, name: "Launch & Handoff", status: "done", priority: "high", due: "Dec 1", assignee: "A.Reed" },
+    ],
+  },
+  {
+    id: 4, client: "Sphere Commerce", industry: "E-Commerce",
+    logo: "SC", color: "#FCD34D",
+    project: "E-Commerce Platform",
+    year: "2025", status: "active",
+    tags: ["E-Commerce", "Web Dev", "Analytics"],
+    desc: "Custom headless commerce solution with advanced personalization engine and real-time analytics.",
+    budget: "$175,000", duration: "8 months",
+    tasks: [
+      { id: 1, name: "Discovery & Architecture", status: "done", priority: "high", due: "Jan 20", assignee: "T.Wong" },
+      { id: 2, name: "Design System", status: "done", priority: "high", due: "Feb 15", assignee: "M.Chen" },
+      { id: 3, name: "Backend API", status: "in-progress", priority: "high", due: "Mar 28", assignee: "T.Wong" },
+      { id: 4, name: "Frontend Build", status: "in-progress", priority: "high", due: "Apr 10", assignee: "D.Park" },
+      { id: 5, name: "Analytics Integration", status: "todo", priority: "med", due: "Apr 25", assignee: "L.Torres" },
+      { id: 6, name: "Performance Tuning", status: "todo", priority: "med", due: "May 10", assignee: "T.Wong" },
+      { id: 7, name: "UAT & Launch", status: "todo", priority: "high", due: "Jun 1", assignee: "A.Reed" },
+    ],
+  },
+  {
+    id: 5, client: "Drift Protocol", industry: "Web3",
+    logo: "DP", color: "#38BDF8",
+    project: "Product Design & Dev",
+    year: "2025", status: "active",
+    tags: ["Web3", "Product", "Branding"],
+    desc: "End-to-end product design for a DeFi protocol, including brand, app UI, and marketing site.",
+    budget: "$98,000", duration: "5 months",
+    tasks: [
+      { id: 1, name: "Brand Foundations", status: "done", priority: "high", due: "Feb 10", assignee: "M.Chen" },
+      { id: 2, name: "App UI Design", status: "in-progress", priority: "high", due: "Mar 15", assignee: "D.Park" },
+      { id: 3, name: "Marketing Site", status: "in-progress", priority: "med", due: "Apr 5", assignee: "L.Torres" },
+      { id: 4, name: "Development", status: "todo", priority: "high", due: "May 1", assignee: "T.Wong" },
+      { id: 5, name: "Testnet Integration", status: "todo", priority: "high", due: "May 20", assignee: "T.Wong" },
+    ],
+  },
+];
+
+export const TEAM: string[] = ["A.Reed", "M.Chen", "D.Park", "T.Wong", "L.Torres", "S.Kim"];
