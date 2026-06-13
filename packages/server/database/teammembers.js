@@ -1,7 +1,7 @@
 import supabase from "../services/supabaseClient";
 
 
-const addTeamMember = async ((name, email,password, hourlyrate=0)=>{
+export const addTeamMember = async ((name, email,password, hourlyrate=0)=>{
     try {
         const {data,error} = await supabase.auth.signUp(
             email,
