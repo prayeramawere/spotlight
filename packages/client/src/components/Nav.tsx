@@ -34,7 +34,7 @@ export function Nav({ page, setPage }: NavProps) {
             <span className="text-[#080C14] font-black text-sm">A</span>
           </div>
           <span className="font-black text-white tracking-tight text-lg">
-            AXIS<span className="text-[#00FF94]">.</span>
+            Spotlight<span className="text-[#00FF94]">.</span>
           </span>
         </button>
 

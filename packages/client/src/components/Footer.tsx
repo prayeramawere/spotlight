@@ -7,11 +7,11 @@ export const Footer = () => {
             <span className="text-[#080C14] font-black text-xs">A</span>
           </div>
           <span className="font-black text-white">
-            AXIS<span className="text-[#00FF94]">.</span>
+            Spotlight<span className="text-[#00FF94]">.</span>
           </span>
         </div>
         <p className="text-xs text-slate-600">
-          © 2025 Axis Agency. All rights reserved.
+          © 2025 Spotlight Agency. All rights reserved.
         </p>
         <div className="flex gap-6">
           {["Privacy", "Terms", "Contact"].map((l) => (

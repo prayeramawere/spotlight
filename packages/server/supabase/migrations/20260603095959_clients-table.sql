@@ -1,0 +1,12 @@
+CREATE TABLE clients (
+  id BIGSERIAL PRIMARY KEY NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  companyName VARCHAR(255),
+  contactPerson VARCHAR(255),
+  phone VARCHAR(20),
+  industry VARCHAR(255),
+  address TEXT,
+  notes TEXT,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

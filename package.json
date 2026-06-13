@@ -9,9 +9,17 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "workspaces": [
     "packages/*"
-  ]
-  
+  ],
+  "devDependencies": {
+    "nodemon": "^3.1.14",
+    "supabase": "^2.104.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.108.1",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
 }
