@@ -45,3 +45,24 @@ export const createClient = async ({
     console.log("an error occured while creating a client", error);
   }
 };
+
+export const updateClient = async (data, id) => {
+  try {
+    const { data } = await supabase
+      .from("clients")
+      .update(data)
+      .eq("id", id)
+      .select();
+  } catch (error) {}
+};
+
+export const deleteClient = async (id) => {
+  await supabase.from("clients").delete("*").eq("id", id);
+};
+
+export const getClients = async () => {
+  const { data, error } = await supabase.from("clients").select("*");
+
+  console.log("an error occured while fetching clients: ".error);
+  return data;
+};

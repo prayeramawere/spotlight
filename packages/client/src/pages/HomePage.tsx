@@ -1,7 +1,14 @@
-import { useState, type JSX } from "react";
-import type { Page, Project, ProjectStatus } from "../lib/types";
-import { PROJECTS } from "../lib/utils/data";
+import { useEffect, useState, type JSX } from "react";
+import type {
+  Client,
+  Page,
+  Project,
+  ProjectStatus,
+  Task,
+  TeamMember,
+} from "../lib/types";
 import { cn, getProgress } from "../lib/utils/helpers";
+import { API_URL } from "../lib/utils/api";
 
 interface HomePageProps {
   setPage: (p: Page) => void;
@@ -13,7 +20,63 @@ export function HomePage({
   setSelectedProject,
 }: HomePageProps): JSX.Element {
   const [filter, setFilter] = useState<"all" | ProjectStatus>("all");
-  const [hovered, setHovered] = useState<number | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
+
+  const [activeClient, setActiveClient] = useState<Project>();
+  const [PROJECTS, setProjects] = useState<Project[]>([]);
+  const [newTaskName, setNewTaskName] = useState<string>("");
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [TEAM, setTeam] = useState<TeamMember[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+
+  type Links = {
+    link1: string;
+    link2: string;
+    link3: string;
+    link4: string;
+  };
+
+  const loadData = async (Links: Links) => {
+    const { link1, link2, link3, link4 } = Links;
+    const [projectsRes, tasksRes, teamRes, clientsRes] = await Promise.all([
+      fetch(link1),
+      fetch(link2),
+      fetch(link3),
+      fetch(link4),
+    ]);
+
+    const [projectsData, tasksData, teamData, clientsData] = await Promise.all([
+      projectsRes.json(),
+      tasksRes.json(),
+      teamRes.json(),
+      clientsRes.json(),
+    ]);
+    const projectData: Project[] = projectsData.data;
+    const TASKS: Task[] = tasksData.data;
+    const team: TeamMember[] = teamData.data;
+    const clients: Client[] = clientsData.data;
+
+    setActiveClient(projectData[0]);
+    setProjects(projectData);
+    setTasks(TASKS);
+    setTeam(team);
+    setClients(clients);
+  };
+
+  useEffect(() => {
+    loadData({
+      link1: `${API_URL}/projects`,
+      link2: `${API_URL}/tasks`,
+      link3: `${API_URL}/team`,
+      link4: `${API_URL}/clients`,
+    });
+  }, []);
+
+  const getProjectClient = (projectId: string): Client | undefined => {
+    const project = PROJECTS.find((p) => p.id === projectId);
+    if (!project) return undefined;
+    return clients.find((c) => c.id === project.client_id);
+  };
 
   const filtered: Project[] =
     filter === "all" ? PROJECTS : PROJECTS.filter((p) => p.status === filter);
@@ -111,7 +174,9 @@ export function HomePage({
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/5 rounded-xl overflow-hidden">
           {filtered.map((proj) => {
-            const progress = getProgress(proj.tasks);
+            const progress = getProgress(
+              tasks.filter((t) => t.project_id === proj.id),
+            );
             return (
               <button
                 key={proj.id}
@@ -127,20 +192,13 @@ export function HomePage({
                   className="absolute top-0 left-0 right-0 h-[2px] transition-all duration-500 rounded-t"
                   style={{
                     background:
-                      hovered === proj.id ? proj.color : "transparent",
+                      hovered === proj.id ? "green-500" : "transparent",
                   }}
                 />
 
                 <div className="flex items-start justify-between mb-6">
-                  <div
-                    className="w-12 h-12 rounded-lg flex items-center justify-center font-black text-sm"
-                    style={{
-                      background: proj.color + "20",
-                      color: proj.color,
-                      border: `1px solid ${proj.color}30`,
-                    }}
-                  >
-                    {proj.logo}
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center font-black text-sm">
+                    {proj.name}
                   </div>
                   <span
                     className={cn(
@@ -154,30 +212,26 @@ export function HomePage({
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-500 font-bold tracking-widest uppercase mb-2">
-                  {proj.industry}
-                </p>
+                <p className="text-xs text-slate-500 font-bold tracking-widest uppercase mb-2"></p>
                 <h3 className="text-xl font-black text-white mb-1 leading-tight">
-                  {proj.client}
+                  {getProjectClient(proj.id)?.name || "Unknown Client"}
                 </h3>
-                <p className="text-slate-400 text-sm mb-6">{proj.project}</p>
+                <p className="text-slate-400 text-sm mb-6">{proj.name}</p>
 
                 <div className="mb-4">
                   <div className="flex justify-between text-xs text-slate-500 mb-2">
                     <span>Progress</span>
-                    <span style={{ color: proj.color }} className="font-bold">
-                      {progress}%
-                    </span>
+                    <span className="font-bold">{progress}%</span>
                   </div>
                   <div className="w-full h-1 bg-white/5 rounded-full">
                     <div
                       className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${progress}%`, background: proj.color }}
+                      style={{ width: `${progress}%` }}
                     />
                   </div>
                 </div>
 
-                <div className="flex gap-2 flex-wrap">
+                {/* <div className="flex gap-2 flex-wrap">
                   {proj.tags.map((t) => (
                     <span
                       key={t}
@@ -186,11 +240,11 @@ export function HomePage({
                       {t}
                     </span>
                   ))}
-                </div>
+                </div> */}
 
                 <div className="mt-6 flex items-center justify-between">
                   <span className="text-xs text-slate-600">
-                    {proj.year} · {proj.duration}
+                    {proj.startDate} · {proj.dueDate}
                   </span>
                   <span className="text-xs font-bold text-slate-400 group-hover:text-white transition-colors flex items-center gap-1">
                     View Details <span className="text-lg leading-none">→</span>

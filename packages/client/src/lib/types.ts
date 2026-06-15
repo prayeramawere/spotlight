@@ -4,30 +4,60 @@ export type ProjectStatus = "completed" | "active";
 export type Page = "home" | "dashboard" | "stats" | "contact";
 
 export interface Task {
-  id: number;
-  name: string;
+  id?:string;
+  title: string;
+  description: string;
   status: TaskStatus;
+  project_id: string;
+  created_at: string;
+  assignedTo: string;
   priority: Priority;
-  due: string;
-  assignee: string;
+  dueDate: string;
+}
+
+export interface Client {
+  id: string;
+  name: string;
+  email:string;
+  companyName: string;
+  contactPerson:string;
+  phone:string;
+  industry:string;
+  address:string;
+  notes:string;
+
+}
+
+export interface TeamMember{
+  id:string;
+  name:string;
+  email:string;
+  role:string;
+  hourlyRate:number;
+}
+export interface Invoice{
+  id:string;
+  clientId:string;
+  projectId:string;
+  amount:number;
+  status:string;
+  InvoiceNumber:string;
+  dueDate:string;
+  pdfURL:string;
 }
 
 export interface Project {
-  id: number;
-  client: string;
-  industry: string;
-  logo: string;
-  color: string;
-  project: string;
-  year: string;
-  status: ProjectStatus;
-  tags: string[];
-  desc: string;
+  id: string;
+  client_id: string;
+  name: string;
   budget: string;
-  duration: string;
-  tasks: Task[];
+  status: ProjectStatus;
+  startDate: string;
+  dueDate: string;
+  progress: number;
+  createdAt: string;
 }
 
 export interface TasksState {
-  [projectId: number]: Task[];
+  [projectId: string]: Task[];
 }

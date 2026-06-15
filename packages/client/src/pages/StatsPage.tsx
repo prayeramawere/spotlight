@@ -1,9 +1,66 @@
-import type { Task } from "../lib/types";
-import { PROJECTS } from "../lib/utils/data";
+import { useState, useEffect } from "react";
+import type { Client, Project, Task, TeamMember } from "../lib/types";
+import { API_URL } from "../lib/utils/api";
 import { getProgress } from "../lib/utils/helpers";
 
 export function StatsPage() {
-  const allTasks: Task[] = PROJECTS.flatMap((p) => p.tasks);
+  const [activeClient, setActiveClient] = useState<Project>();
+  const [PROJECTS, setProjects] = useState<Project[]>([]);
+  const [newTaskName, setNewTaskName] = useState<string>("");
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [TEAM, setTeam] = useState<TeamMember[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+
+  type Links = {
+    link1: string;
+    link2: string;
+    link3: string;
+    link4: string;
+  };
+
+  const loadData = async (Links: Links) => {
+    const { link1, link2, link3, link4 } = Links;
+    const [projectsRes, tasksRes, teamRes, clientsRes] = await Promise.all([
+      fetch(link1),
+      fetch(link2),
+      fetch(link3),
+      fetch(link4),
+    ]);
+
+    const [projectsData, tasksData, teamData, clientsData] = await Promise.all([
+      projectsRes.json(),
+      tasksRes.json(),
+      teamRes.json(),
+      clientsRes.json(),
+    ]);
+    const projectData: Project[] = projectsData.data;
+    const TASKS: Task[] = tasksData.data;
+    const team: TeamMember[] = teamData.data;
+    const clients: Client[] = clientsData.data;
+
+    setActiveClient(projectData[0]);
+    setProjects(projectData);
+    setTasks(TASKS);
+    setTeam(team);
+    setClients(clients);
+  };
+
+  useEffect(() => {
+    loadData({
+      link1: `${API_URL}/projects`,
+      link2: `${API_URL}/tasks`,
+      link3: `${API_URL}/team`,
+      link4: `${API_URL}/clients`,
+    });
+  }, []);
+
+  const getProjectClient = (projectId: string): Client | undefined => {
+    const project = PROJECTS.find((p) => p.id === projectId);
+    if (!project) return undefined;
+    return clients.find((c) => c.id === project.client_id);
+  };
+
+  const allTasks: Task[] = tasks;
   const done = allTasks.filter((t) => t.status === "done").length;
   const inProg = allTasks.filter((t) => t.status === "in-progress").length;
   const todo = allTasks.filter((t) => t.status === "todo").length;
@@ -112,28 +169,23 @@ export function StatsPage() {
           <h3 className="font-black text-white mb-6">Client Progress</h3>
           <div className="space-y-4">
             {PROJECTS.map((proj) => {
-              const p = getProgress(proj.tasks);
+              const p = getProgress(
+                tasks.filter((t) => t.project_id === proj.id),
+              );
               return (
                 <div key={proj.id} className="flex items-center gap-4">
-                  <div
-                    className="w-8 h-8 rounded flex items-center justify-center text-[10px] font-black flex-shrink-0"
-                    style={{ background: proj.color + "20", color: proj.color }}
-                  >
-                    {proj.logo}
-                  </div>
+                  <div className="w-8 h-8 rounded flex items-center justify-center text-[10px] font-black flex-shrink-0"></div>
                   <div className="flex-1">
                     <div className="flex justify-between text-xs mb-1">
                       <span className="text-slate-400 font-medium">
-                        {proj.client}
+                        {getProjectClient(proj.id)?.name || "Unknown Client"}
                       </span>
-                      <span className="font-bold" style={{ color: proj.color }}>
-                        {p}%
-                      </span>
+                      <span className="font-bold">{p}%</span>
                     </div>
                     <div className="h-1.5 bg-white/5 rounded-full">
                       <div
                         className="h-full rounded-full"
-                        style={{ width: `${p}%`, background: proj.color }}
+                        style={{ width: `${p}%` }}
                       />
                     </div>
                   </div>
@@ -153,13 +205,8 @@ export function StatsPage() {
               key={proj.id}
               className="flex items-center gap-3 px-4 py-3 rounded-xl border border-white/5"
             >
-              <div
-                className="w-2 h-2 rounded-full"
-                style={{ background: proj.color }}
-              />
-              <span className="text-sm text-slate-300 font-medium">
-                {proj.industry}
-              </span>
+              <div className="w-2 h-2 rounded-full" />
+              <span className="text-sm text-slate-300 font-medium"></span>
               <span className="text-xs text-slate-600">· {proj.budget}</span>
             </div>
           ))}

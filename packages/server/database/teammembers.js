@@ -1,4 +1,4 @@
-import supabase from "../services/supabaseClient";
+import supabase from "../services/supabaseClient.js";
 
 
 export const addTeamMember = async ((name, email,password, hourlyrate=0)=>{
@@ -25,3 +25,23 @@ export const addTeamMember = async ((name, email,password, hourlyrate=0)=>{
         console.log("an error occured while attempting to add team member: ", error)
     }
 })
+
+export const updateTeam = async (data,id) => {
+  try {
+    const { data } = await supabase
+      .from("teammembers")
+      .update(data)
+      .eq("id", id)
+      .select();
+  } catch (error) {}
+};
+
+export const deleteTeamMember = async (id) => {
+  await supabase.from("teammembers").delete("*").eq("id", id);
+};
+
+export const getTeam = async () => {
+  const { data } = await supabase.from("teammembers").select("*");
+
+  return data;
+};

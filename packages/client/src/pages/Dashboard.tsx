@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
-import type { Project, Task, TasksState, TaskStatus } from "../lib/types";
-import { PROJECTS, TEAM } from "../lib/utils/data";
+import type {
+  Client,
+  Project,
+  Task,
+  TaskStatus,
+  TeamMember,
+} from "../lib/types";
 import { cn, getProgress } from "../lib/utils/helpers";
 import { StatusBadge } from "../components/StatusBadge";
 import { PriorityDot } from "../components/PriorityDot";
+import { API_URL } from "../lib/utils/api";
 
 export interface DashboardProps {
   selectedProject: Project | null;
@@ -14,55 +20,106 @@ export function Dashboard({
   selectedProject,
   setSelectedProject,
 }: DashboardProps) {
-  const [activeClient, setActiveClient] = useState<Project>(
-    selectedProject ?? PROJECTS[0],
-  );
+  const [activeClient, setActiveClient] = useState<Project>();
+  const [PROJECTS, setProjects] = useState<Project[]>([]);
   const [newTaskName, setNewTaskName] = useState<string>("");
-  const [tasks, setTasks] = useState<TasksState>(() => {
-    const init: TasksState = {};
-    PROJECTS.forEach((p) => {
-      init[p.id] = [...p.tasks];
-    });
-    return init;
-  });
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [TEAM, setTeam] = useState<TeamMember[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+
+  type Links = {
+    link1: string;
+    link2: string;
+    link3: string;
+    link4: string;
+  };
+
+  const loadData = async (Links: Links) => {
+    const { link1, link2, link3, link4 } = Links;
+    const [projectsRes, tasksRes, teamRes, clientsRes] = await Promise.all([
+      fetch(link1),
+      fetch(link2),
+      fetch(link3),
+      fetch(link4),
+    ]);
+
+    const [projectsData, tasksData, teamData, clientsData] = await Promise.all([
+      projectsRes.json(),
+      tasksRes.json(),
+      teamRes.json(),
+      clientsRes.json(),
+    ]);
+    const projectData: Project[] = projectsData.data;
+    const TASKS: Task[] = tasksData.data;
+    const team: TeamMember[] = teamData.data;
+    const clients: Client[] = clientsData.data;
+
+    setActiveClient(projectData[0]);
+    setProjects(projectData);
+    setTasks(TASKS);
+    setTeam(team);
+    setClients(clients);
+  };
 
   useEffect(() => {
+    loadData({
+      link1: `${API_URL}/projects`,
+      link2: `${API_URL}/tasks`,
+      link3: `${API_URL}/team`,
+      link4: `${API_URL}/clients`,
+    });
     if (selectedProject) setActiveClient(selectedProject);
   }, [selectedProject]);
 
-  const clientTasks: Task[] = tasks[activeClient.id] ?? [];
+  const clientTasks: Task[] = tasks.filter(
+    (t) => t.project_id === activeClient?.id,
+  );
   const progress = getProgress(clientTasks);
 
-  function cycleStatus(taskId: number): void {
+  function cycleStatus(taskId: string): void {
     const cycle: Record<TaskStatus, TaskStatus> = {
       todo: "in-progress",
       "in-progress": "done",
       done: "todo",
     };
-    setTasks((prev) => ({
-      ...prev,
-      [activeClient.id]: (prev[activeClient.id] ?? []).map((t) =>
-        t.id === taskId ? { ...t, status: cycle[t.status] } : t,
-      ),
-    }));
+    activeClient &&
+      setTasks((prev) => ({
+        ...prev,
+        [activeClient?.id]: (
+          prev.filter((t) => t.id === activeClient?.id) ?? []
+        ).map((t: Task) =>
+          t.id === taskId ? { ...t, status: cycle[t.status] } : t,
+        ),
+      }));
   }
 
   function addTask(): void {
     if (!newTaskName.trim()) return;
     const newTask: Task = {
-      id: Date.now(),
-      name: newTaskName.trim(),
+      title: newTaskName.trim(),
       status: "todo",
       priority: "med",
-      due: "TBD",
-      assignee: TEAM[0],
+      dueDate: "TBD",
+      assignedTo: TEAM[0].name,
+      description: "",
+      project_id: activeClient?.id as string,
+      created_at: new Date().toISOString(),
     };
     setTasks((prev) => ({
       ...prev,
-      [activeClient.id]: [...(prev[activeClient.id] ?? []), newTask],
+      [activeClient?.id || ""]: [
+        ...(prev.filter((t) => t.id === activeClient?.id) ?? []),
+        newTask,
+      ],
     }));
     setNewTaskName("");
   }
+
+  const getProjectClient = (projectId: string): Client | undefined => {
+    const project = PROJECTS.find((p) => p.id === projectId);
+    if (!project) return undefined;
+    return clients.find((c) => c.id === project.client_id);
+  };
 
   const allTasks: Task[] = Object.values(tasks).flat();
   const totalDone = allTasks.filter((t) => t.status === "done").length;
@@ -81,8 +138,10 @@ export function Dashboard({
           </p>
           <div className="space-y-1">
             {PROJECTS.map((proj) => {
-              const p = getProgress(tasks[proj.id] ?? []);
-              const isActive = activeClient.id === proj.id;
+              const p = getProgress(
+                tasks.filter((t) => t.project_id === proj.id) ?? [],
+              );
+              const isActive = activeClient?.id === proj.id;
               return (
                 <button
                   key={proj.id}
@@ -97,12 +156,7 @@ export function Dashboard({
                       : "hover:bg-white/4",
                   )}
                 >
-                  <div
-                    className="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0"
-                    style={{ background: proj.color + "20", color: proj.color }}
-                  >
-                    {proj.logo}
-                  </div>
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0"></div>
                   <div className="flex-1 min-w-0">
                     <p
                       className={cn(
@@ -110,21 +164,13 @@ export function Dashboard({
                         isActive ? "text-white" : "text-slate-400",
                       )}
                     >
-                      {proj.client}
+                      {getProjectClient(proj.id)?.name ?? "Unknown Client"}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <div className="flex-1 h-1 bg-white/5 rounded-full">
-                        <div
-                          className="h-full rounded-full"
-                          style={{ width: `${p}%`, background: proj.color }}
-                        />
+                        <div className="h-full rounded-full" />
                       </div>
-                      <span
-                        className="text-[10px] font-bold"
-                        style={{ color: proj.color }}
-                      >
-                        {p}%
-                      </span>
+                      <span className="text-[10px] font-bold">{p}%</span>
                     </div>
                   </div>
                 </button>
@@ -167,41 +213,28 @@ export function Dashboard({
           <div
             className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-30"
             style={{
-              background: `radial-gradient(circle, ${activeClient.color}15 0%, transparent 70%)`,
+              background: `radial-gradient(circle, 0%, transparent 70%)`,
               transform: "translate(30%, -30%)",
             }}
           />
           <div className="relative flex flex-col md:flex-row md:items-start gap-6">
-            <div
-              className="w-16 h-16 rounded-xl flex items-center justify-center text-xl font-black flex-shrink-0"
-              style={{
-                background: activeClient.color + "20",
-                color: activeClient.color,
-                border: `1px solid ${activeClient.color}30`,
-              }}
-            >
-              {activeClient.logo}
-            </div>
+            <div className="w-16 h-16 rounded-xl flex items-center justify-center text-xl font-black flex-shrink-0"></div>
             <div className="flex-1">
               <div className="flex flex-wrap items-start gap-4 justify-between">
                 <div>
-                  <p
-                    className="text-xs font-bold tracking-widest uppercase mb-1"
-                    style={{ color: activeClient.color }}
-                  >
-                    {activeClient.industry}
-                  </p>
+                  <p className="text-xs font-bold tracking-widest uppercase mb-1"></p>
                   <h2 className="text-3xl font-black text-white">
-                    {activeClient.client}
+                    {getProjectClient(activeClient?.id || "")?.name ??
+                      "Unknown Client"}
                   </h2>
-                  <p className="text-slate-400 mt-1">{activeClient.project}</p>
+                  <p className="text-slate-400 mt-1">
+                    {getProjectClient(activeClient?.id || "")?.name ??
+                      "Unknown Client"}
+                  </p>
                 </div>
                 <div className="flex gap-6">
                   {(
-                    [
-                      [activeClient.budget, "Budget"],
-                      [activeClient.duration, "Duration"],
-                    ] as [string, string][]
+                    [[activeClient?.budget, "Budget"]] as [string, string][]
                   ).map(([val, label]) => (
                     <div key={label} className="text-right">
                       <p className="text-2xl font-black text-white">{val}</p>
@@ -211,27 +244,21 @@ export function Dashboard({
                     </div>
                   ))}
                   <div className="text-right">
-                    <p
-                      className="text-2xl font-black"
-                      style={{ color: activeClient.color }}
-                    >
-                      {progress}%
-                    </p>
+                    <p className="text-2xl font-black">{progress}%</p>
                     <p className="text-xs text-slate-500 tracking-wider uppercase">
                       Complete
                     </p>
                   </div>
                 </div>
               </div>
-              <p className="text-slate-400 text-sm mt-4 max-w-xl">
+              {/* <p className="text-slate-400 text-sm mt-4 max-w-xl">
                 {activeClient.desc}
-              </p>
+              </p> */}
               <div className="mt-4 h-2 bg-white/5 rounded-full w-full max-w-sm">
                 <div
                   className="h-full rounded-full transition-all duration-700"
                   style={{
                     width: `${progress}%`,
-                    background: activeClient.color,
                   }}
                 />
               </div>
@@ -335,7 +362,7 @@ export function Dashboard({
                             : "text-white",
                         )}
                       >
-                        {task.name}
+                        {task?.title}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -349,20 +376,20 @@ export function Dashboard({
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    {/* <td className="px-6 py-4">
                       <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-slate-300">
                         {task.assignee
                           .split(".")
                           .map((s) => s[0])
                           .join("")}
                       </div>
-                    </td>
+                    </td> */}
                     <td className="px-6 py-4 text-xs text-slate-500">
-                      {task.due}
+                      {task.dueDate}
                     </td>
                     <td className="px-6 py-4">
                       <button
-                        onClick={() => cycleStatus(task.id)}
+                        onClick={() => cycleStatus(task.id || "")}
                         className="text-[10px] font-bold tracking-wider uppercase px-3 py-1 rounded border border-white/10 text-slate-400 hover:border-[#00FF94]/50 hover:text-[#00FF94] transition-all"
                       >
                         Advance
